@@ -3,7 +3,7 @@ Derailer is a tool that helps test for how services handle random dependency fai
 
 Derailer randomly removes instances of running services, or remove the service entirely. Allowing you to build more resilient services by finding missed opportunities to handle failures gracefully.
 
-Deploy on Railway
+[![Deploy on Railway](https://railway.com/button.svg)](https://railway.com/template/WRXzro?referralCode=A6ij-A)
 
 Derailer follows the [Principles of Chaos Engineering](http://principlesofchaos.org/).
 
