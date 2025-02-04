@@ -1,6 +1,6 @@
 # Railway Chaos Derailer
 
-![Github Repository Header](https://github.com/user-attachments/assets/953eba71-b13f-47bc-bfd9-c6a64db143e7)
+![Github Repository Header](https://github.com/user-attachments/assets/0af361a4-2a0a-4362-800b-36d19299ee9d)
 
 ---
 
