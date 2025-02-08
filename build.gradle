@@ -1,0 +1,138 @@
+plugins {
+    id 'java'
+    id 'io.quarkus' version '3.18.1'
+    id 'maven-publish'
+}
+
+repositories {
+    mavenCentral()
+    mavenLocal()
+}
+
+ext {
+    commonLang = '3.14.0'
+    guava = '33.0.0-jre'
+    jsonPatch = '1.13'
+    apacheCommonsCollections4 = '4.5.0-M2'
+    lombokVersion = '1.18.30'
+    mapstructVersion = '1.5.5.Final'
+    opentelemetrySamplers = '1.32.0-alpha'
+    belkerJavaVersion = '1.0.0'
+    servletApiVersion = '4.0.1'
+    testContainerKafka = '1.19.3'
+    quarkusLoggingJson = '3.0.0'
+    karateJunit5 = '1.4.1'
+    cucumberReporting = '5.7.8'
+    wireMock = '3.3.1'
+    apacheCommonsText = '1.10.0'
+    instancioJunit = '4.0.0'
+    dataFaker = '2.1.0'
+    microcks = '0.1.3'
+}
+
+dependencies {
+    // Quarkus Platform BOM
+    implementation enforcedPlatform("io.quarkus.platform:quarkus-bom:${quarkusPlatformVersion}")
+
+    // Quarkus core and utilities
+    implementation 'io.quarkus:quarkus-arc'
+    implementation 'io.quarkus:quarkus-hibernate-validator'
+    implementation 'io.quarkus:quarkus-rest'
+    implementation 'io.quarkus:quarkus-smallrye-graphql-client'
+    implementation 'jakarta.json:jakarta.json-api:2.1.2'
+    implementation 'org.glassfish:jakarta.json:2.0.1'
+    implementation 'jakarta.validation:jakarta.validation-api:3.1.1'
+    implementation 'io.quarkus:quarkus-scheduler'
+    implementation 'io.quarkus:quarkus-rest-client'
+    implementation 'io.quarkus:quarkus-rest-jackson'
+    implementation 'io.quarkus:quarkus-rest-client-jackson'
+    implementation 'io.quarkus:quarkus-mongodb-panache'
+    implementation 'io.quarkus:quarkus-smallrye-openapi'
+    implementation 'io.quarkus:quarkus-vertx'
+    implementation 'io.quarkus:quarkus-spring-di'
+    implementation 'io.quarkus:quarkus-spring-web'
+    implementation 'io.quarkus:quarkus-redis-client'
+    implementation 'io.quarkus:quarkus-smallrye-health'
+    implementation 'io.quarkus:quarkus-smallrye-context-propagation'
+    implementation 'io.quarkus:quarkus-smallrye-fault-tolerance'
+    implementation 'io.quarkus:quarkus-cache'
+
+    // Logging
+    implementation "org.jboss.slf4j:slf4j-jboss-logmanager"
+    implementation "io.quarkiverse.loggingjson:quarkus-logging-json:${quarkusLoggingJson}"
+
+    // Telemetry
+    implementation 'io.quarkus:quarkus-opentelemetry'
+    implementation "io.opentelemetry.contrib:opentelemetry-samplers:${opentelemetrySamplers}"
+
+    // Common Utility Libraries
+    implementation "org.apache.commons:commons-lang3:${commonLang}"
+    implementation "org.apache.commons:commons-collections4:${apacheCommonsCollections4}"
+    implementation "org.apache.commons:commons-text:${apacheCommonsText}"
+    implementation "com.google.guava:guava:${guava}"
+    implementation "com.github.java-json-tools:json-patch:${jsonPatch}"
+
+    // Lombok
+    compileOnly "org.projectlombok:lombok:${lombokVersion}"
+    annotationProcessor "org.projectlombok:lombok:${lombokVersion}"
+    testCompileOnly "org.projectlombok:lombok:${lombokVersion}"
+    testAnnotationProcessor "org.projectlombok:lombok:${lombokVersion}"
+
+    // Object Mapping
+    compileOnly "org.mapstruct:mapstruct:${mapstructVersion}"
+    annotationProcessor "org.mapstruct:mapstruct-processor:${mapstructVersion}"
+
+    // FSM
+    implementation 'org.squirrelframework:squirrel-foundation:0.3.10'
+
+    // JWT
+    implementation "io.smallrye:smallrye-jwt-build:4.4.0"
+
+    // Servlet API
+    implementation "javax.servlet:javax.servlet-api:${servletApiVersion}"
+
+    // Kafka
+    implementation "io.quarkus:quarkus-messaging-kafka"
+
+    // Test Dependencies
+    testImplementation "io.quarkus:quarkus-junit5"
+    testImplementation "io.quarkus:quarkus-junit5-mockito:${quarkusPluginVersion}"
+    //testImplementation "io.testcontainers:kafka:${testContainerKafka}"
+    testImplementation "io.smallrye.reactive:smallrye-reactive-messaging-in-memory"
+    testImplementation "org.mockito:mockito-junit-jupiter"
+    testImplementation 'io.rest-assured:rest-assured'
+    testImplementation 'io.quarkus:quarkus-jacoco'
+    testImplementation "com.intuit.karate:karate-junit5:${karateJunit5}"
+    testImplementation "net.masterthought:cucumber-reporting:${cucumberReporting}"
+    testImplementation "org.instancio:instancio-junit:${instancioJunit}"
+    testImplementation "net.datafaker:datafaker:${dataFaker}"
+
+    // metrics
+    implementation "io.quarkiverse.micrometer.registry:quarkus-micrometer-registry-otlp:3.2.4"
+
+    // Mocking and WireMock
+    testImplementation 'io.quarkiverse.wiremock:quarkus-wiremock:1.1.0'
+    testImplementation 'io.quarkiverse.wiremock:quarkus-wiremock-test:1.1.0'
+    implementation "io.github.microcks.quarkus:quarkus-microcks:${microcks}"
+}
+
+group = 'com.postsuite.template'
+version = '1.0.0-SNAPSHOT'
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+}
+
+test {
+    systemProperty 'java.util.logging.manager', 'org.jboss.logmanager.LogManager'
+}
+
+compileJava {
+    options.encoding = 'UTF-8'
+    options.compilerArgs << '-parameters'
+}
+
+compileTestJava {
+    options.encoding = 'UTF-8'
+}

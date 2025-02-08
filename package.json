@@ -1,0 +1,6 @@
+{
+  "devDependencies": {
+    "graphql": "^16.10.0",
+    "graphql-mocks": "^0.11.3"
+  }
+}

@@ -21,7 +21,7 @@ resilient services by finding missed opportunities to handle failures gracefully
 
 ## ▶️ Derailment Process
 
-Every so often (every `FREQUENCY_MINUTES`), the Derailer lists your Railway services and filters them to ones that
+Every so often (defined in `FREQUENCY_CRON`), the Derailer lists your Railway services and filters them to ones that
 aren't in the configured blacklist.
 
 Using this list, it chooses to 'Derail' a number of your services (using `BLAST_RADIUS`), this is done by **Aborting
@@ -72,12 +72,12 @@ documentation](docs/openapi/openapi.json).
 
 ### Environment Variables
 
-| Variable 	        | Description 	                                                                           | Default Value 	 |
-|-------------------|-----------------------------------------------------------------------------------------|-----------------|
-| RAILWAY_API_KEY   | Your Railway API key, required to list your services and fetch your running deployments |                 |
-| FREQUENCY_MINUTES | How often (in minutes) to run the chaos, cannot be less than `DURATION_MINUTES`         | 10              |
-| DURATION_MINUTES  | How long (in minutes) to keep services removed / deployments aborted	                   | 60              |
-| BLAST_RADIUS      | How many services to impact in each run of the Derailer                                 | 2               |
+| Variable 	       | Description 	                                                                           | Default Value 	 |
+|------------------|-----------------------------------------------------------------------------------------|-----------------|
+| RAILWAY_API_KEY  | Your Railway API key, required to list your services and fetch your running deployments |                 |
+| FREQUENCY_CRON   | A chron expression defining how often to run the derailer                               | 0 0 * * * ?     |
+| DURATION_MINUTES | How long (in minutes) to keep services removed / deployments aborted	                   | 60              |
+| BLAST_RADIUS     | How many services to impact in each run of the Derailer                                 | 2               |
 
 The default configuration also uses `RAILWAY_SERVICE_ID` (automatically added by Railway) to blacklist the Derailer
 application from being Derailed.
@@ -87,7 +87,7 @@ application from being Derailed.
 By default, the only service automatically blacklisted is the Derailer application. However, you may want to blacklist
 some UIs, or essential services (think carefully about how reliable they are!) to avoid everything falling on its face.
 
-This can be configured in `src/main/resources/application.properties`
+This can be configured in `src/main/resources/application.properties` (`derailment.blacklist`)
 
 ---
 
