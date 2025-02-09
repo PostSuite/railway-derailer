@@ -1,7 +1,10 @@
 package com.postsuite.derailer.orchestrators;
 
 import com.postsuite.derailer.infrastructure.InfrastructureService;
+import com.postsuite.derailer.mapper.PauseMapper;
+import com.postsuite.derailer.models.PauseModel;
 import com.postsuite.derailer.models.response.DerailmentModel;
+import com.postsuite.derailer.services.PauseService;
 import io.quarkus.scheduler.Scheduled;
 import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -10,6 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 
 import java.time.Duration;
+import java.time.Instant;
 import java.util.List;
 
 @Slf4j
@@ -19,6 +23,8 @@ public class ManagementOrchestrator {
 
     private final InfrastructureService infrastructureService;
     private final DerailmentOrchestrator derailmentOrchestrator;
+    private final PauseService pauseService;
+    private final PauseMapper pauseMapper;
 
     @ConfigProperty(name = "derailment.duration")
     int derailmentDurationMinutes;
@@ -54,18 +60,23 @@ public class ManagementOrchestrator {
     }
 
     public Uni<DerailmentModel> triggerDerailment() {
+        final Uni<PauseModel> pauseUni = this.getPause();
         final Uni<Boolean> anyActiveUni =
                 this.derailmentOrchestrator.getDerailments(1, 1)
                         .map(list -> list.stream().anyMatch(model -> !model.isRolledBack()));
-        return anyActiveUni.flatMap(active -> {
-            if (active) {
-                throw new IllegalArgumentException("Already an active derailment ongoing");
-            }
-            return this.infrastructureService.triggerDerailment(
-                    this.blastRadius,
-                    Duration.ofMinutes(this.derailmentDurationMinutes),
-                    this.blacklistedServices);
-        });
+        return Uni.combine().all().unis(pauseUni, anyActiveUni).asTuple()
+                .flatMap(tuple2 -> {
+                    if (tuple2.getItem1() != null) {
+                        throw new IllegalArgumentException("Pause is in effect");
+                    }
+                    if (tuple2.getItem2()) {
+                        throw new IllegalArgumentException("Already an active derailment ongoing");
+                    }
+                    return this.infrastructureService.triggerDerailment(
+                            this.blastRadius,
+                            Duration.ofMinutes(this.derailmentDurationMinutes),
+                            this.blacklistedServices);
+                });
     }
 
     public Uni<Void> triggerRollback(final boolean force) {
@@ -76,6 +87,26 @@ public class ManagementOrchestrator {
                     }
                     return null;
                 });
+    }
+
+    public Uni<PauseModel> pause(final PauseModel pauseModel) {
+        return this.pauseService.savePause(pauseModel)
+                .replaceWith(pauseModel);
+    }
+
+    public Uni<Void> unpause() {
+        return this.pauseService.unpause();
+    }
+
+    public Uni<PauseModel> getPause() {
+        return this.pauseService.getPause()
+                .map(pause -> {
+                    if (pause != null && pause.getEndTimestamp().isBefore(Instant.now())) {
+                        return null;
+                    }
+                    return pause;
+                })
+                .map(this.pauseMapper::toModel);
     }
 
 

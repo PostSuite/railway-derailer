@@ -4,13 +4,12 @@ import com.postsuite.derailer.models.PauseModel;
 import com.postsuite.derailer.models.response.DerailmentModel;
 import com.postsuite.derailer.orchestrators.ManagementOrchestrator;
 import io.smallrye.mutiny.Uni;
+import jakarta.validation.Valid;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import lombok.RequiredArgsConstructor;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
-
-import java.util.UUID;
 
 @Tag(name = "Derailment Manager API")
 @Path("/manage_derailments")
@@ -27,7 +26,7 @@ public class DerailmentManagerEndpoint {
     @POST
     @Path("/summon")
     public Uni<DerailmentModel> summonDerailment() {
-        return managementOrchestrator.triggerDerailment();
+        return this.managementOrchestrator.triggerDerailment();
     }
 
     @Operation(
@@ -37,8 +36,8 @@ public class DerailmentManagerEndpoint {
     @Consumes(MediaType.APPLICATION_JSON)
     @POST
     @Path("/pause")
-    public Uni<PauseModel> pause() {
-        return Uni.createFrom().nullItem();
+    public Uni<PauseModel> pause(@Valid final PauseModel request) {
+        return this.managementOrchestrator.pause(request);
     }
 
     @Operation(
@@ -48,8 +47,8 @@ public class DerailmentManagerEndpoint {
     @Consumes(MediaType.APPLICATION_JSON)
     @GET
     @Path("/pause")
-    public Uni<PauseModel> isPaused() {
-        return Uni.createFrom().nullItem();
+    public Uni<PauseModel> getActivePause() {
+        return this.managementOrchestrator.getPause();
     }
 
     @Operation(
@@ -59,8 +58,8 @@ public class DerailmentManagerEndpoint {
     @Consumes(MediaType.APPLICATION_JSON)
     @DELETE
     @Path("/pause")
-    public Uni<PauseModel> unpause() {
-        return Uni.createFrom().nullItem();
+    public Uni<Void> unpause() {
+        return this.managementOrchestrator.unpause();
     }
 
     @Operation(
@@ -70,8 +69,8 @@ public class DerailmentManagerEndpoint {
     @Consumes(MediaType.APPLICATION_JSON)
     @POST
     @Path("/rollback/{identifier}")
-    public Uni<Void> summonDerailment(@PathParam("identifier") final UUID identifier) {
-        return Uni.createFrom().nullItem();
+    public Uni<Void> rollbackDerailment() {
+        return this.managementOrchestrator.triggerRollback(true);
     }
 
 }
