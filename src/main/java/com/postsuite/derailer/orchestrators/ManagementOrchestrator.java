@@ -59,7 +59,8 @@ public class ManagementOrchestrator {
     void autoRollback() {
         try {
             this.triggerRollback(false).subscribe().with(
-                    derailment -> log.info("Rollback triggered: {}", derailment),
+                    derailment -> {
+                    },
                     failure -> log.warn("Rollback failed: {}", failure.getMessage())
             );
         } catch (final Exception e) {
@@ -68,9 +69,9 @@ public class ManagementOrchestrator {
     }
 
     public Uni<ZonedDateTime> getNextDerailment() {
-        CronParser parser = new CronParser(CronDefinitionBuilder.instanceDefinitionFor(CronType.QUARTZ));
-        ExecutionTime executionTime = ExecutionTime.forCron(parser.parse(cronExpression));
-        ZonedDateTime now = ZonedDateTime.now();
+        final CronParser parser = new CronParser(CronDefinitionBuilder.instanceDefinitionFor(CronType.QUARTZ));
+        final ExecutionTime executionTime = ExecutionTime.forCron(parser.parse(this.cronExpression));
+        final ZonedDateTime now = ZonedDateTime.now();
         return Uni.createFrom().item(executionTime.nextExecution(now).orElseThrow());
     }
 

@@ -188,8 +188,8 @@ components:
     DerailmentState:
       type: string
       enum:
-      - CRASHING
-      - CRASHED
+      - DERAILING
+      - DERAILED
       - REVERTING
       - COMPLETE
     EntityType:

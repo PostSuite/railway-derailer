@@ -64,7 +64,7 @@ public class RailwayInfrastructureManager implements InfrastructureManager {
                 .setIdentifier(deploy.getId())
                 .setParentIdentifier(service.getId())
                 .setParentDisplayName(service.getName())
-                .setState(DerailmentState.CRASHED)
+                .setState(DerailmentState.DERAILED)
                 .setLink(String.format("https://railway.com/project/%s/service/%s?environmentId=%s&id=%s#deploy", this.railwayProjectId, service.getId(), this.railwayEnvironmentId, deploy.getId())); // todo
     }
 

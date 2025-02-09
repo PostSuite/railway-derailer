@@ -1,4 +1,4 @@
-# Railway Chaos Derailer
+# Railway Derailer
 
 ![Github Repository Header](https://github.com/user-attachments/assets/0af361a4-2a0a-4362-800b-36d19299ee9d)
 
@@ -6,7 +6,7 @@
 
 Derailer is a tool that helps test for how services handle random dependency failures,
 on [Railway](https://railway.com). Inspired by [Netflix's Chaos Monkey](https://github.com/Netflix/chaosmonkey).
-Derailer randomly removes instances of running services, or remove the service entirely. Allowing you to build more
+Derailer randomly removes instances of running services. Allowing you to build more
 resilient services by finding missed opportunities to handle failures gracefully.
 
 > [!CAUTION]
@@ -48,10 +48,9 @@ Derailer comes with a (very primitive) user interface for controlling how the de
 
 - Viewing an active derailment and what services it's impacting
 - Rollback an active derailment if it's causing a headache
-- Viewing when the last derailment happened
 - Viewing when the next derailment will occur
 - Viewing a history of which services were impacted for each past derailment
-- Delaying derailments for a certain time period (to allow for some rest!)
+- Pausing derailments for a certain time period (to allow for some rest!)
 
 ---
 
@@ -79,13 +78,11 @@ documentation](docs/openapi/openapi.json).
 | DURATION_MINUTES | How long (in minutes) to keep services removed / deployments aborted	                   | 60              |
 | BLAST_RADIUS     | How many services to impact in each run of the Derailer                                 | 2               |
 
-The default configuration also uses `RAILWAY_SERVICE_ID` (automatically added by Railway) to blacklist the Derailer
-application from being Derailed.
-
 ### Blacklisting services
 
 By default, the only service automatically blacklisted is the Derailer application. However, you may want to blacklist
-some UIs, or essential services (think carefully about how reliable they are!) to avoid everything falling on its face.
+some UIs, monitoring systems, or essential services (think carefully about how reliable they are!) to avoid everything
+falling on its face.
 
 This can be configured in `src/main/resources/application.properties` (`derailment.blacklist`)
 
@@ -97,13 +94,3 @@ Running locally allows you to quickly test your changes, using the Quarkus frame
 
 Copy `.env-example` into a file called `.env` and fill in all the environment vars
 Run `./gradlew quarkusDev` from the gradle quarkus menu to run in dev mode
-
----
-
-## 🚀 Testing
-
-To run tests, execute:
-
-```shell
-./gradlew test
-```

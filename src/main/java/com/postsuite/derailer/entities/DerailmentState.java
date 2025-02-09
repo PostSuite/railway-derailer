@@ -1,8 +1,8 @@
 package com.postsuite.derailer.entities;
 
 public enum DerailmentState {
-    CRASHING,
-    CRASHED,
+    DERAILING,
+    DERAILED,
     REVERTING,
     COMPLETE;
 }

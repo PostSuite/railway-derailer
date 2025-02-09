@@ -265,7 +265,7 @@
       },
       "DerailmentState" : {
         "type" : "string",
-        "enum" : [ "CRASHING", "CRASHED", "REVERTING", "COMPLETE" ]
+        "enum" : [ "DERAILING", "DERAILED", "REVERTING", "COMPLETE" ]
       },
       "EntityType" : {
         "type" : "string",

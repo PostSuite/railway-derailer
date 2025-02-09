@@ -13,11 +13,16 @@
             color: white;
         }
 
+        html, body {
+            height: 100%;
+            margin: 0;
+        }
+
         .navbar {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background: #333;
+            background-color: #ff4081;
             color: white;
             padding: 15px;
         }
@@ -31,26 +36,18 @@
             border: none;
             padding: 10px 15px;
             cursor: pointer;
-        }
-
-        #summonDerailment {
             background: #00FFFF;
+            color: black;
         }
 
-        #pauseDerailments {
-            background: #00FFFF;
-        }
-
-        #summonDerailment:hover {
+        button:hover {
             background: #ffffff;
-        }
-
-        #pauseDerailments:hover {
-            background: #ffffff;
+            color: black;
         }
 
         .container {
             max-width: 800px;
+            min-height: 75%;
             margin: 20px auto;
             padding: 20px;
             background: #1e1e1e;
@@ -110,9 +107,61 @@
             display: block;
         }
 
-        .derailment-header {
+        .loading-spinner {
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            border: 4px solid transparent;
+            border-top: 4px solid #00FFFF;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Notification Styles */
+        .notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: #333;
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
+            opacity: 0;
+            animation: fadeInOut 10s forwards;
+        }
+
+        @keyframes fadeInOut {
+            0% { opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+
+        footer {
+            background-color: #1e1e1e;
+            color: #ffffff;
+            text-align: center;
+            padding: 15px;
+            font-size: 0.9em;
+            margin-top: 2%;
+        }
+
+        footer a {
+            color: #ff4081;
+            text-decoration: none;
             font-weight: bold;
         }
+
     </style>
 </head>
 <body>
@@ -132,8 +181,7 @@
 
     <section>
         <h2>Active Derailment</h2>
-        <div id="activeDerailments">
-        </div>
+        <div id="activeDerailments"></div>
     </section>
 
     <section>
@@ -155,6 +203,12 @@
     </div>
 </div>
 
+<footer>
+    Created by <a href="https://github.com/billydotws" target="_blank">Billy</a> for PostSuite, 2025
+</footer>
+
+<div class="loading-spinner" id="loadingSpinner"></div>
+
 <script>
     document.addEventListener("DOMContentLoaded", () => {
         const pauseButton = document.getElementById("pauseDerailments");
@@ -162,6 +216,8 @@
         const confirmPause = document.getElementById("confirmPause");
         const closePauseModal = document.getElementById("closePauseModal");
         const nextDerailmentElement = document.getElementById("nextDerailment");
+        const loadingSpinner = document.getElementById("loadingSpinner");
+        let derailmentsPaused = false;
 
         let countdownInterval;
 
@@ -169,6 +225,9 @@
             clearInterval(countdownInterval);
             function updateCountdown() {
                 const diff = new Date(timestamp) - new Date();
+                if (diff < -10) {
+                    location.reload();
+                }
                 if (diff <= 0) {
                     nextDerailmentElement.textContent = "Imminent!";
                     clearInterval(countdownInterval);
@@ -183,7 +242,26 @@
         }
 
         pauseButton.addEventListener("click", () => {
-            modal.classList.add("show");
+            if(!derailmentsPaused) {
+                modal.classList.add("show");
+            } else {
+                        showLoading(true);
+
+            fetch("/manage_derailments/pause", {
+                method: "DELETE",
+                headers: { "Content-Type": "application/json" }
+            })
+            .then(response => response.json())
+            .then(data => {
+                showNotification("Derailments unpaused successfully.");
+            })
+            .catch(error => {
+                showNotification("Error pausing derailments.");
+            })
+            .finally(() => {
+                location.reload();
+            });
+            }
         });
 
         closePauseModal.addEventListener("click", () => {
@@ -194,34 +272,48 @@
             const start = document.getElementById("startTimestamp").value + ":00Z";
             const end = document.getElementById("endTimestamp").value + ":00Z";
             if (!start || !end) {
-                alert("Please enter valid start and end timestamps.");
+                showNotification("Please enter valid start and end timestamps.");
                 return;
             }
 
-            fetch("http://localhost:8080/manage_derailments/pause", {
+            showLoading(true);
+
+            fetch("/manage_derailments/pause", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ startTimestamp: start, endTimestamp: end, reason: "Scheduled Pause" })
             })
             .then(response => response.json())
-            .then(data => alert("Derailments paused successfully."))
-            .catch(error => alert("Error pausing derailments."));
+            .then(data => {
+                showNotification("Derailments paused successfully.");
+            })
+            .catch(error => {
+                showNotification("Error pausing derailments.");
+            })
+            .finally(() => {
+                location.reload();
+            });
+
             modal.classList.remove("show");
         });
 
+        function showNotification(message) {
+            const notification = document.createElement("div");
+            notification.className = "notification";
+            notification.textContent = message;
+            document.body.appendChild(notification);
+        }
 
-        fetch("http://localhost:8080/manage_derailments/pause")
+        fetch("/manage_derailments/pause")
             .then(response => {
                 if (response.status !== 204) {
-                    // Assuming response.json() returns an object with 'endTimestamp'
                     response.json().then(data => {
-                        paused(data.endTimestamp);  // Use the parsed JSON here
+                        paused(data.endTimestamp);
                     }).catch(error => {
                         console.error("Error parsing JSON:", error);
                     });
                 } else {
-                    // If 204, continue to fetch the next data
-                    fetch("http://localhost:8080/manage_derailments/next")
+                    fetch("/manage_derailments/next")
                         .then(response => response.json())
                         .then(data => {
                             if (data) {
@@ -236,133 +328,136 @@
 
         function paused(timestamp) {
             nextDerailmentElement.textContent = "Currently Paused until " + formatDate(timestamp) + "!";
+            pauseButton.textContent = "Unpause Derailments";
+            derailmentsPaused = true;
         }
 
     });
 
-    function formatDate(timestamp) {
-        const date = new Date(timestamp);
-        const options = {
-            weekday: 'short',
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit',
-            second: '2-digit',
-            hour12: true
-        };
-        return date.toLocaleDateString('en-US', options); // Adjust locale as needed
-    }
+            function formatDate(timestamp) {
+            const date = new Date(timestamp);
+            const options = {
+                weekday: 'short',
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: true
+            };
+            return date.toLocaleDateString('en-US', options);
+        }
+
+        function showLoading(isLoading) {
+            if (isLoading) {
+                loadingSpinner.style.display = "block";
+            } else {
+                loadingSpinner.style.display = "none";
+            }
+        }
 
     document.addEventListener("DOMContentLoaded", () => {
-        const activeDerailmentsContainer = document.getElementById("activeDerailments");
-        const pastDerailmentsContainer = document.getElementById("pastDerailments");
+            const activeDerailmentsContainer = document.getElementById("activeDerailments");
+            const pastDerailmentsContainer = document.getElementById("pastDerailments");
 
-        // Function to handle the toggle of service list visibility
-        function toggleServiceList(event) {
-            const derailmentBox = event.target.closest('.derailment');
-            const servicesContainer = derailmentBox.querySelector('.services');
-            if (servicesContainer.style.display === "none" || servicesContainer.style.display === "") {
-                servicesContainer.style.display = "block";
-            } else {
-                servicesContainer.style.display = "none";
+            // Attach event listener for expanding/collapsing the service list
+            pastDerailmentsContainer.addEventListener('click', function(event) {
+                if (event.target && event.target.closest('.derailment-header')) {
+                    toggleServiceList(event);
+                }
+            });
+
+            activeDerailmentsContainer.addEventListener('click', function(event) {
+                if (event.target && event.target.closest('.derailment-header')) {
+                    toggleServiceList(event);
+                }
+            });
+
+            function toggleServiceList(event) {
+                const derailmentBox = event.target.closest('.derailment');
+                const servicesContainer = derailmentBox.querySelector('.services');
+                if (servicesContainer.style.display === "none" || servicesContainer.style.display === "") {
+                    servicesContainer.style.display = "block";
+                } else {
+                    servicesContainer.style.display = "none";
+                }
             }
-        }
 
-        // Function to render derailments
-        function renderDerailments(derailments, container) {
-            container.innerHTML = derailments.map(d => {
-                const isActive = !d.rolledBack;
-                const servicesHTML = d.affectedEntities.map(entity => {
-                    return `<li><a href="${entity.link}" target="_blank">[${entity.state}] ${entity.parentDisplayName}</a></li>`;
+            function renderDerailments(derailments, container) {
+                container.innerHTML = derailments.map(d => {
+                    const isActive = !d.rolledBack;
+                    const servicesHTML = d.affectedEntities.map(entity => {
+                        return `<li><a href="${entity.link}" target="_blank">[${entity.state}] ${entity.parentDisplayName}</a></li>`;
+                    }).join("");
+
+                    const formattedDate = formatDate(d.startTimestamp);
+                    const rollbackButtonHTML = isActive ?
+                        `<button class="rollback-button" data-id="${d.identifier}">🌀 Rollback</button>` : '';
+
+                    return `
+                        <div style="background-color:  ${isActive ? 'green' : 'gray'}" class="derailment ${isActive ? 'expanded' : ''}" data-id="${d.identifier}">
+                            <div class="derailment-header" ${isActive ? 'style="cursor:pointer"' : ''}>
+                                <p>${formattedDate} - ${isActive ? 'Active' : 'Previous'}</p>
+                                ${rollbackButtonHTML}
+                            </div>
+                            <div class="services ${isActive ? '' : 'collapsed'}" style="display: ${isActive ? 'block' : 'none'}">
+                                <ul>
+                                    ${servicesHTML}
+                                </ul>
+                            </div>
+                        </div>
+                    `;
                 }).join("");
 
-                const formattedDate = formatDate(d.startTimestamp);
+                if(derailments.length == 0) {
+                    const summonButton = document.getElementById("summonDerailment");
+                    summonButton.style.display = "block";
+                    summonButton.addEventListener("click", () => {
+                        showLoading(true);
+                        fetch("/manage_derailments/summon", { method: "POST" })
+                            .then(() => {
+                                location.reload();
+                            });
+                    });
+                }
 
-                // Add the Rollback button only for active derailments
-                const rollbackButtonHTML = isActive ?
-                    `<button class="rollback-button" data-id="${d.identifier}">🌀 Rollback</button>` : '';
-
-                return `
-                    <div style="background-color:  ${isActive ? 'green' : 'gray'}" class="derailment ${isActive ? 'expanded' : ''}" data-id="${d.identifier}">
-                        <div class="derailment-header" ${isActive ? 'style="cursor:pointer"' : ''}>
-                            <p>${formattedDate} - ${isActive ? 'Active' : 'Previous'}</p>
-                            ${rollbackButtonHTML}
-                        </div>
-                        <div class="services ${isActive ? '' : 'collapsed'}" style="display: ${isActive ? 'block' : 'none'}">
-                            <ul>
-                                ${servicesHTML}
-                            </ul>
-                        </div>
-                    </div>
-                `;
-            }).join("");
-
-            // Show the Summon Derailment button if no active derailments
-            if(derailments.length == 0) {
-                const summonButton = document.getElementById("summonDerailment");
-                summonButton.style.display = "block";
-                summonButton.addEventListener("click", () => {
-                    fetch("http://localhost:8080/manage_derailments/summon", { method: "POST" })
-                        .then(response => response.json())
-                        .then(data => alert("Derailment summoned: " + data.identifier));
-                });
-            }
-
-            // Handle Rollback Button Clicks
-            const rollbackButtons = document.querySelectorAll(".rollback-button");
-            rollbackButtons.forEach(button => {
-                button.addEventListener("click", (event) => {
-                    const derailmentId = event.target.getAttribute("data-id");
-
-                    // Send the rollback request to the server
-                    fetch(`http://localhost:8080/manage_derailments/rollback/${derailmentId}`, {
-                        method: "POST"
-                    })
-                    .then(response => {
-                        if (response.ok) {
-                            alert(`Derailment ${derailmentId} has been rolled back.`);
-                            // Optionally, you can update the UI to reflect the change
-                            // (e.g., remove the active status, or remove the derailment from the list)
-                        } else {
-                            alert(`Failed to rollback derailment ${derailmentId}.`);
-                        }
-                    })
-                    .catch(error => {
-                        console.error("Error rolling back derailment:", error);
-                        alert("Error occurred while rolling back derailment.");
+                const rollbackButtons = document.querySelectorAll(".rollback-button");
+                rollbackButtons.forEach(button => {
+                    button.addEventListener("click", (event) => {
+                        const derailmentId = event.target.getAttribute("data-id");
+                        showLoading(true);
+                        fetch(`/manage_derailments/rollback/${derailmentId}`, {
+                            method: "POST"
+                        })
+                        .then(response => {
+                            if (response.ok) {
+                                showNotification(`Derailment ${derailmentId} has been rolled back.`);
+                            } else {
+                                showNotification(`Failed to rollback derailment ${derailmentId}.`);
+                            }
+                        })
+                        .catch(error => {
+                            console.error("Error rolling back derailment:", error);
+                            showNotification("Error occurred while rolling back derailment.");
+                        })
+                        .finally(() => {
+                            location.reload();
+                        });
                     });
                 });
-            });
-        }
-
-        // Fetch active and past derailments from the API
-        fetch("http://localhost:8080/derailments")
-            .then(response => response.json())
-            .then(data => {
-                const activeDerailments = data.filter(d => !d.rolledBack);
-                const pastDerailments = data.filter(d => d.rolledBack);
-
-                renderDerailments(activeDerailments, activeDerailmentsContainer);
-                renderDerailments(pastDerailments, pastDerailmentsContainer);
-            });
-
-        // Attach event listener for expanding/collapsing the service list
-        activeDerailmentsContainer.addEventListener('click', function(event) {
-            if (event.target && event.target.closest('.derailment-header')) {
-                toggleServiceList(event);
             }
-        });
 
-        // Attach event listener for expanding/collapsing the service list
-        pastDerailmentsContainer.addEventListener('click', function(event) {
-            if (event.target && event.target.closest('.derailment-header')) {
-                toggleServiceList(event);
-            }
+            fetch("/derailments")
+                .then(response => response.json())
+                .then(data => {
+                    const activeDerailments = data.filter(d => !d.rolledBack);
+                    const pastDerailments = data.filter(d => d.rolledBack);
+
+                    renderDerailments(activeDerailments, activeDerailmentsContainer);
+                    renderDerailments(pastDerailments, pastDerailmentsContainer);
+                });
         });
-    });
 </script>
-
 </body>
 </html>
