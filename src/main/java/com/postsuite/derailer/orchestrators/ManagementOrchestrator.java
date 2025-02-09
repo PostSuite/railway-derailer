@@ -19,7 +19,7 @@ public class ManagementOrchestrator {
 
     private final InfrastructureService infrastructureService;
     private final DerailmentOrchestrator derailmentOrchestrator;
-    
+
     @ConfigProperty(name = "derailment.duration")
     int derailmentDurationMinutes;
 
@@ -41,6 +41,18 @@ public class ManagementOrchestrator {
         }
     }
 
+    @Scheduled(every = "1m")
+    void autoRollback() {
+        try {
+            this.triggerRollback(false).subscribe().with(
+                    derailment -> log.info("Rollback triggered: {}", derailment),
+                    failure -> log.warn("Rollback failed: {}", failure.getMessage())
+            );
+        } catch (final Exception e) {
+            log.warn("Rollback failed: {}", e.getMessage());
+        }
+    }
+
     public Uni<DerailmentModel> triggerDerailment() {
         final Uni<Boolean> anyActiveUni =
                 this.derailmentOrchestrator.getDerailments(1, 1)
@@ -54,6 +66,16 @@ public class ManagementOrchestrator {
                     Duration.ofMinutes(this.derailmentDurationMinutes),
                     this.blacklistedServices);
         });
+    }
+
+    public Uni<Void> triggerRollback(final boolean force) {
+        return this.infrastructureService.rollbackCurrentDerailment(force)
+                .onFailure().recoverWithItem(throwable -> {
+                    if (force) {
+                        throw new RuntimeException(throwable);
+                    }
+                    return null;
+                });
     }
 
 

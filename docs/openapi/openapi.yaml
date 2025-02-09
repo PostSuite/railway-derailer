@@ -1,0 +1,202 @@
+---
+openapi: 3.1.0
+info:
+  description: |
+    Derailer is a tool that helps test for how services handle random dependency failures, using Railway.
+  title: Railway Derailer
+  version: 1.0.0
+externalDocs:
+  description: |
+    Derailer is a tool that helps test for how services handle random dependency failures, using Railway.
+  url: https://<OpenIPALocation>
+tags:
+- name: Derailment Manager API
+- name: Derailments API
+components:
+  schemas:
+    DerailedEntity:
+      type: object
+      properties:
+        identifier:
+          type: string
+        parentIdentifier:
+          type: string
+        parentDisplayName:
+          type: string
+        state:
+          $ref: "#/components/schemas/DerailmentState"
+        link:
+          type: string
+        entityType:
+          $ref: "#/components/schemas/EntityType"
+        meta:
+          type: object
+          additionalProperties:
+            type: string
+    DerailmentModel:
+      type: object
+      properties:
+        identifier:
+          $ref: "#/components/schemas/UUID"
+        startTimestamp:
+          $ref: "#/components/schemas/Instant"
+        rollbackTimestamp:
+          $ref: "#/components/schemas/Instant"
+        blastRadius:
+          type: integer
+          format: int32
+        state:
+          $ref: "#/components/schemas/DerailmentState"
+        isRolledBack:
+          type: boolean
+        affectedEntities:
+          type: array
+          items:
+            $ref: "#/components/schemas/DerailedEntity"
+    DerailmentState:
+      type: string
+      enum:
+      - CRASHING
+      - CRASHED
+      - REVERTING
+      - COMPLETE
+    EntityType:
+      type: string
+      enum:
+      - INSTANCE
+    Instant:
+      type: string
+      format: date-time
+      examples:
+      - 2022-03-10T16:15:50Z
+    PauseModel:
+      type: object
+      properties:
+        startTimestamp:
+          $ref: "#/components/schemas/Instant"
+        endTimestamp:
+          $ref: "#/components/schemas/Instant"
+        reason:
+          type: string
+    UUID:
+      type: string
+      format: uuid
+      pattern: "[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}"
+paths:
+  /derailments:
+    get:
+      summary: Get a list of service derailments
+      operationId: Derailments.list
+      tags:
+      - Derailments API
+      parameters:
+      - name: page
+        in: query
+        schema:
+          type: integer
+          format: int32
+          default: 1
+      - name: per_page
+        in: query
+        schema:
+          type: integer
+          format: int32
+          default: 100
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/DerailmentModel"
+  /derailments/{identifier}:
+    get:
+      summary: Get details about a specific derailment
+      operationId: Derailments.get
+      tags:
+      - Derailments API
+      parameters:
+      - name: identifier
+        in: path
+        required: true
+        schema:
+          $ref: "#/components/schemas/UUID"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DerailmentModel"
+  /manage_derailments/pause:
+    delete:
+      summary: Unpause an ongoing derailment pause early
+      operationId: Derailments.unpause
+      tags:
+      - Derailment Manager API
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PauseModel"
+    post:
+      summary: Take a break from derailments for a time period
+      operationId: Derailments.pause
+      tags:
+      - Derailment Manager API
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PauseModel"
+    get:
+      summary: Check if there's an ongoing pause on derailments
+      operationId: Derailments.getPause
+      tags:
+      - Derailment Manager API
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PauseModel"
+  /manage_derailments/rollback/{identifier}:
+    post:
+      summary: Rollback an ongoing derailment
+      operationId: Derailments.rollback
+      tags:
+      - Derailment Manager API
+      parameters:
+      - name: identifier
+        in: path
+        required: true
+        schema:
+          $ref: "#/components/schemas/UUID"
+      responses:
+        "201":
+          description: Created
+  /manage_derailments/summon:
+    post:
+      summary: Summon a derailment
+      operationId: Derailments.summon
+      tags:
+      - Derailment Manager API
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DerailmentModel"
+servers:
+- url: http://localhost:8080
+  description: Auto generated value
+- url: http://0.0.0.0:8080
+  description: Auto generated value

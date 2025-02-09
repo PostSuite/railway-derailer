@@ -112,7 +112,15 @@ public class RailwayInfrastructureManager implements InfrastructureManager {
     }
 
     @Override
-    public Uni<List<DerailedEntity>> rollback(final List<DerailedEntity> entitesToRollback) {
-        return null;
+    public Uni<List<DerailedEntity>> rollback(final List<DerailedEntity> entitiesToRollback) {
+        return this.railwayAuthentication.getBearerToken()
+                .map(token -> "Bearer " + token)
+                .flatMap(token -> MutinyUtil.uniListFailFast(entitiesToRollback, entity -> this.railwayClientProvider.serviceInstanceDeploy(entity.getParentIdentifier(), this.railwayEnvironmentId, null, true, token)
+                        .onFailure().recoverWithNull()
+                        .replaceWithVoid()
+                        .onItem()
+                        .invoke(unused -> entity.setState(DerailmentState.COMPLETE))
+                        .replaceWith(entity)));
+
     }
 }

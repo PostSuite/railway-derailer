@@ -2,8 +2,10 @@ package com.postsuite.derailer.entities;
 
 import io.quarkus.mongodb.panache.common.MongoEntity;
 import lombok.Data;
+import lombok.NonNull;
 import lombok.experimental.Accessors;
 import org.bson.codecs.pojo.annotations.BsonId;
+import org.bson.codecs.pojo.annotations.BsonIgnore;
 
 import java.time.Instant;
 import java.util.List;
@@ -30,6 +32,7 @@ public class DerailmentEntity {
      */
     private Instant rollbackTimestamp;
 
+    @BsonIgnore
     public int getBlastRadius() {
         if (this.affectedEntities == null) {
             return 0;
@@ -42,6 +45,7 @@ public class DerailmentEntity {
      *
      * @return the current state of the derailment
      */
+    @BsonIgnore
     public DerailmentState getState() {
         if (this.affectedEntities == null || this.affectedEntities.isEmpty()) {
             return DerailmentState.CRASHING;
@@ -56,6 +60,6 @@ public class DerailmentEntity {
         return minState;
     }
 
-    private List<DerailedEntity> affectedEntities;
+    private List<@NonNull DerailedEntity> affectedEntities;
 
 }

@@ -22,4 +22,7 @@ public interface RailwayClientProvider extends InfrastructureClientProvider {
 
     @Mutation
     Uni<Void> deploymentRemove(@NotNull String id, @Header(name = "Authorization") String authorization);
+
+    @Mutation
+    Uni<Void> serviceInstanceDeploy(@NotNull String serviceId, @NotNull String environmentId, String commitSha, boolean latestCommit, @Header(name = "Authorization") String authorization);
 }
