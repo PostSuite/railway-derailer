@@ -15,7 +15,7 @@ resilient services by finding missed opportunities to handle failures gracefully
 
 **If you've read the above disclaimer and understand it, click to deploy:**
 
-[![Deploy on Railway](https://railway.com/button.svg)](https://railway.com/template/WRXzro?referralCode=A6ij-A)
+[![Deploy on Railway](https://railway.com/button.svg)](https://railway.com/template/FMEpOh?referralCode=A6ij-A)
 
 ---
 
@@ -29,12 +29,14 @@ Deployments**, it will remove the currently active deployment of your service.
 
 After the defined `DURATION_MINUTES`, it will re-deploy any effected services.
 
-**The derailed services are stored in a persistent volume (on sqlite), meaning re-deploying this service will restore
+**The derailed services are stored in a persistent database (on MongoDB), meaning re-deploying this service will restore
 any effected services when it comes online!**
 
 ---
 
 ## 👀 User Interface
+
+![User Interface](https://i.imgur.com/xu3Sy33.png)
 
 > [!WARNING]
 > This user interface is not password protected, we suggest
@@ -75,7 +77,7 @@ documentation](docs/openapi/openapi.json).
 |------------------|-----------------------------------------------------------------------------------------|-----------------|
 | RAILWAY_API_KEY  | Your Railway API key, required to list your services and fetch your running deployments |                 |
 | FREQUENCY_CRON   | A chron expression defining how often to run the derailer                               | 0 0 * * * ?     |
-| DURATION_MINUTES | How long (in minutes) to keep services removed / deployments aborted	                   | 60              |
+| DURATION_MINUTES | How long (in minutes) to keep deployments aborted	                                      | 60              |
 | BLAST_RADIUS     | How many services to impact in each run of the Derailer                                 | 2               |
 
 ### Blacklisting services

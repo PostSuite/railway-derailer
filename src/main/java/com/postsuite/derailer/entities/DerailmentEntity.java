@@ -48,7 +48,7 @@ public class DerailmentEntity {
     @BsonIgnore
     public DerailmentState getState() {
         if (this.affectedEntities == null || this.affectedEntities.isEmpty()) {
-            return DerailmentState.DERAILING;
+            return DerailmentState.COMPLETE;
         }
         DerailmentState minState = DerailmentState.COMPLETE;
         for (final DerailedEntity entity : this.affectedEntities) {
