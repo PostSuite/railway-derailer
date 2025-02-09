@@ -82,8 +82,8 @@ public class DerailmentManagerEndpoint {
     @Consumes(MediaType.APPLICATION_JSON)
     @POST
     @Path("/rollback/{identifier}")
-    public Uni<Void> rollbackDerailment() {
-        return this.managementOrchestrator.triggerRollback(true);
+    public Uni<Void> rollbackDerailment(@PathParam("identifier") final String identifier) {
+        return this.managementOrchestrator.triggerRollback(true, identifier);
     }
 
 }

@@ -27,6 +27,16 @@
             padding: 15px;
         }
 
+        .navbar-left {
+            display: flex;
+            flex-direction: column;
+        }
+
+        #nextDerailment {
+            font-size: 14px;
+            margin-top: 5px;
+        }
+
         .navbar-buttons {
             display: flex;
             gap: 10px;
@@ -162,11 +172,20 @@
             font-weight: bold;
         }
 
+        #nextDerailment {
+            font-size: 14px;
+            margin-top: -20px;
+        }
+
     </style>
 </head>
 <body>
 <nav class="navbar">
-    <h1>Railway Derailer</h1>
+    <div class="navbar-left">
+        <h1>Railway Derailer</h1>
+        <p id="nextDerailment">Loading...</p>
+    </div>
+
     <div class="navbar-buttons">
         <button id="pauseDerailments">Pause Derailments</button>
         <button style="display: none;" id="summonDerailment">Summon Derailment</button>
@@ -174,11 +193,6 @@
 </nav>
 
 <div class="container">
-    <section>
-        <h2>Next Derailment</h2>
-        <p id="nextDerailment">Loading...</p>
-    </section>
-
     <section>
         <h2>Active Derailment</h2>
         <div id="activeDerailments"></div>
@@ -218,28 +232,6 @@
         const nextDerailmentElement = document.getElementById("nextDerailment");
         const loadingSpinner = document.getElementById("loadingSpinner");
         let derailmentsPaused = false;
-
-        let countdownInterval;
-
-        function startCountdown(timestamp) {
-            clearInterval(countdownInterval);
-            function updateCountdown() {
-                const diff = new Date(timestamp) - new Date();
-                if (diff < -10) {
-                    location.reload();
-                }
-                if (diff <= 0) {
-                    nextDerailmentElement.textContent = "Imminent!";
-                    clearInterval(countdownInterval);
-                } else {
-                    const minutes = Math.floor(diff / 60000);
-                    const seconds = ((diff % 60000) / 1000).toFixed(0);
-                    nextDerailmentElement.textContent = `${minutes}m ${seconds}s`;
-                }
-            }
-            updateCountdown();
-            countdownInterval = setInterval(updateCountdown, 1000);
-        }
 
         pauseButton.addEventListener("click", () => {
             if(!derailmentsPaused) {
@@ -317,7 +309,7 @@
                         .then(response => response.json())
                         .then(data => {
                             if (data) {
-                                startCountdown(data);
+                                startCountdown(data, nextDerailmentElement, 'Next derailment in');
                             }
                         });
                 }
@@ -333,6 +325,52 @@
         }
 
     });
+
+        let nextRollbackCountdownInterval;
+
+        function startRollbackCountdown(timestamp, element, prefix) {
+            clearInterval(nextRollbackCountdownInterval);
+            function updateRollbackCountdown() {
+                const diff = new Date(timestamp) - new Date();
+                const seconds = ((diff % 60000) / 1000).toFixed(0);
+                if (seconds <= -30) {
+                    //location.reload();
+                    console.log(diff);
+                }
+                if (diff <= 0) {
+                    element.textContent = "Imminent!";
+                    clearInterval(nextRollbackCountdownInterval);
+                } else {
+                    const minutes = Math.floor(diff / 60000);
+                    console.log(element.textContent);
+                    element.textContent = prefix + ` ${minutes}m ${seconds}s`;
+                }
+            }
+            updateRollbackCountdown();
+            nextRollbackCountdownInterval = setInterval(updateRollbackCountdown, 1000);
+        }
+
+        let nextDerailmentCountdownInterval;
+
+        function startCountdown(timestamp, element, prefix) {
+            clearInterval(nextDerailmentCountdownInterval);
+            function updateCountdown() {
+                const diff = new Date(timestamp) - new Date();
+                const seconds = ((diff % 60000) / 1000).toFixed(0);
+                if(seconds <= -30) {
+                    location.reload();
+                }
+                if (diff <= 0) {
+                    element.textContent = "Imminent!";
+                    clearInterval(nextDerailmentCountdownInterval);
+                } else {
+                    const minutes = Math.floor(diff / 60000);
+                    element.textContent = prefix + ` ${minutes}m ${seconds}s`;
+                }
+            }
+            updateCountdown();
+            nextDerailmentCountdownInterval = setInterval(updateCountdown, 1000);
+        }
 
             function formatDate(timestamp) {
             const date = new Date(timestamp);
@@ -392,13 +430,18 @@
                     }).join("");
 
                     const formattedDate = formatDate(d.startTimestamp);
+                    const formattedEnd = formatDate(d.rollbackTimestamp);
                     const rollbackButtonHTML = isActive ?
                         `<button class="rollback-button" data-id="${d.identifier}">🌀 Rollback</button>` : '';
 
-                    return `
-                        <div style="background-color:  ${isActive ? 'green' : 'gray'}" class="derailment ${isActive ? 'expanded' : ''}" data-id="${d.identifier}">
+                    const rollbackDate = isActive ? '<p>Ends at ' + formattedEnd + '</p>' : ''
+
+                    const derailmentHTML = `
+                        <div style="background-color: ${isActive ? 'green' : 'gray'}" class="derailment ${isActive ? 'expanded' : ''}" data-id="${d.identifier}">
                             <div class="derailment-header" ${isActive ? 'style="cursor:pointer"' : ''}>
-                                <p>${formattedDate} - ${isActive ? 'Active' : 'Previous'}</p>
+                                <p>${formattedDate} (${d.affectedEntities.length} services affected)</p>
+                                <span class="rollback-timer-container"></span> <!-- Placeholder -->
+                                ${rollbackDate}
                                 ${rollbackButtonHTML}
                             </div>
                             <div class="services ${isActive ? '' : 'collapsed'}" style="display: ${isActive ? 'block' : 'none'}">
@@ -408,6 +451,22 @@
                             </div>
                         </div>
                     `;
+
+                    const rollbackTimerElement = document.createElement("p");
+                    rollbackTimerElement.classList.add("rollbackIn");
+                    rollbackTimerElement.textContent = "Loading...";
+                    container.insertAdjacentHTML("beforeend", derailmentHTML);
+                    const lastDerailment = container.lastElementChild;
+                    const rollbackContainer = lastDerailment.querySelector(".rollback-timer-container");
+                    if (rollbackContainer && isActive) {
+                        setTimeout(() => {
+                            rollbackContainer.appendChild(rollbackTimerElement);
+                            console.log("rollbackTimerElement added:", rollbackTimerElement);
+                            startRollbackCountdown(d.rollbackTimestamp, rollbackTimerElement, "Rolling back in");
+                        }, 0);
+                    }
+
+                    return derailmentHTML;
                 }).join("");
 
                 if(derailments.length == 0) {

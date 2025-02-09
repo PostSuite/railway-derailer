@@ -128,6 +128,12 @@ paths:
       operationId: Derailments.rollback
       tags:
       - Derailment Manager API
+      parameters:
+      - name: identifier
+        in: path
+        required: true
+        schema:
+          type: string
       responses:
         "201":
           description: Created

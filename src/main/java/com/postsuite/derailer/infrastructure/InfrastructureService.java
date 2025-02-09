@@ -47,8 +47,10 @@ public class InfrastructureService {
                 .map(this.derailmentMapper::toModel);
     }
 
-    public Uni<Void> rollbackCurrentDerailment(final boolean forced) {
-        final Uni<DerailmentEntity> currentEntity = this.derailmentService.getEntities(1, 1).map(entities -> entities.stream().findFirst().orElse(null));
+    public Uni<Void> rollbackCurrentDerailment(final boolean forced, final String identifier) {
+        final Uni<DerailmentEntity> currentEntity = identifier == null ?
+                this.derailmentService.getEntities(1, 1).map(entities -> entities.stream().findFirst().orElse(null)) :
+                this.derailmentService.getDerailment(identifier);
         return currentEntity.invoke(entity -> {
                     if (entity == null) {
                         throw new RuntimeException("Null entity");

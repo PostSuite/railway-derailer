@@ -16,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 
+import javax.annotation.Nullable;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.ZonedDateTime;
@@ -58,7 +59,7 @@ public class ManagementOrchestrator {
     @Scheduled(every = "1m")
     void autoRollback() {
         try {
-            this.triggerRollback(false).subscribe().with(
+            this.triggerRollback(false, null).subscribe().with(
                     derailment -> {
                     },
                     failure -> log.warn("Rollback failed: {}", failure.getMessage())
@@ -95,8 +96,8 @@ public class ManagementOrchestrator {
                 });
     }
 
-    public Uni<Void> triggerRollback(final boolean force) {
-        return this.infrastructureService.rollbackCurrentDerailment(force)
+    public Uni<Void> triggerRollback(final boolean force, @Nullable final String identifier) {
+        return this.infrastructureService.rollbackCurrentDerailment(force, identifier)
                 .onFailure().recoverWithItem(throwable -> {
                     if (force) {
                         throw new RuntimeException(throwable);

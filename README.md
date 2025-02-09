@@ -36,7 +36,7 @@ any effected services when it comes online!**
 
 ## 👀 User Interface
 
-![User Interface](https://i.imgur.com/xu3Sy33.png)
+![User Interface](https://i.imgur.com/FCGXeKZ.png)
 
 > [!WARNING]
 > This user interface is not password protected, we suggest
