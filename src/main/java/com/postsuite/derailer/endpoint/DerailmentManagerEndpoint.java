@@ -11,6 +11,8 @@ import lombok.RequiredArgsConstructor;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 
+import java.time.ZonedDateTime;
+
 @Tag(name = "Derailment Manager API")
 @Path("/manage_derailments")
 @RequiredArgsConstructor
@@ -27,6 +29,17 @@ public class DerailmentManagerEndpoint {
     @Path("/summon")
     public Uni<DerailmentModel> summonDerailment() {
         return this.managementOrchestrator.triggerDerailment();
+    }
+
+    @Operation(
+            operationId = "Derailments.next",
+            summary = "Get the time of the next automatic derailment (ignoring pauses)")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    @GET
+    @Path("/next")
+    public Uni<ZonedDateTime> nextDerailment() {
+        return this.managementOrchestrator.getNextDerailment();
     }
 
     @Operation(

@@ -15,6 +15,20 @@
     "name" : "Derailments API"
   } ],
   "paths" : {
+    "/" : {
+      "get" : {
+        "tags" : [ "Derailment Manager API" ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "text/html" : { }
+            }
+          }
+        },
+        "summary" : "Redirect To Destination"
+      }
+    },
     "/derailments" : {
       "get" : {
         "summary" : "Get a list of service derailments",
@@ -74,6 +88,25 @@
               "application/json" : {
                 "schema" : {
                   "$ref" : "#/components/schemas/DerailmentModel"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/manage_derailments/next" : {
+      "get" : {
+        "summary" : "Get the time of the next automatic derailment (ignoring pauses)",
+        "operationId" : "Derailments.next",
+        "tags" : [ "Derailment Manager API" ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ZonedDateTime"
                 }
               }
             }
@@ -261,6 +294,11 @@
         "type" : "string",
         "format" : "uuid",
         "pattern" : "[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}"
+      },
+      "ZonedDateTime" : {
+        "type" : "string",
+        "format" : "date-time",
+        "examples" : [ "2022-03-10T12:15:50-04:00" ]
       }
     }
   },

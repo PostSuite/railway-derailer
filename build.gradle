@@ -107,9 +107,6 @@ dependencies {
     testImplementation "org.instancio:instancio-junit:${instancioJunit}"
     testImplementation "net.datafaker:datafaker:${dataFaker}"
 
-    // metrics
-    implementation "io.quarkiverse.micrometer.registry:quarkus-micrometer-registry-otlp:3.2.4"
-
     // Mocking and WireMock
     testImplementation 'io.quarkiverse.wiremock:quarkus-wiremock:1.1.0'
     testImplementation 'io.quarkiverse.wiremock:quarkus-wiremock-test:1.1.0'

@@ -1,5 +1,9 @@
 package com.postsuite.derailer.orchestrators;
 
+import com.cronutils.model.CronType;
+import com.cronutils.model.definition.CronDefinitionBuilder;
+import com.cronutils.model.time.ExecutionTime;
+import com.cronutils.parser.CronParser;
 import com.postsuite.derailer.infrastructure.InfrastructureService;
 import com.postsuite.derailer.mapper.PauseMapper;
 import com.postsuite.derailer.models.PauseModel;
@@ -14,6 +18,7 @@ import org.eclipse.microprofile.config.inject.ConfigProperty;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.time.ZonedDateTime;
 import java.util.List;
 
 @Slf4j
@@ -34,6 +39,9 @@ public class ManagementOrchestrator {
 
     @ConfigProperty(name = "derailment.blacklist")
     List<String> blacklistedServices;
+
+    @ConfigProperty(name = "derailment.frequency")
+    String cronExpression;
 
     @Scheduled(cron = "{derailment.frequency}")
     void scheduledDerailment() {
@@ -57,6 +65,13 @@ public class ManagementOrchestrator {
         } catch (final Exception e) {
             log.warn("Rollback failed: {}", e.getMessage());
         }
+    }
+
+    public Uni<ZonedDateTime> getNextDerailment() {
+        CronParser parser = new CronParser(CronDefinitionBuilder.instanceDefinitionFor(CronType.QUARTZ));
+        ExecutionTime executionTime = ExecutionTime.forCron(parser.parse(cronExpression));
+        ZonedDateTime now = ZonedDateTime.now();
+        return Uni.createFrom().item(executionTime.nextExecution(now).orElseThrow());
     }
 
     public Uni<DerailmentModel> triggerDerailment() {
