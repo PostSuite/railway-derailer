@@ -226,7 +226,5 @@ components:
       examples:
       - 2022-03-10T12:15:50-04:00
 servers:
-- url: http://localhost:8080
-  description: Auto generated value
-- url: http://0.0.0.0:8080
+- url: "http://[::]:8080"
   description: Auto generated value

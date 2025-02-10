@@ -194,13 +194,15 @@
 
 <div class="container">
     <section>
-        <h2>Active Derailment</h2>
-        <div id="activeDerailments"></div>
+        <h2 id="activeDerailmentsTitle">Active Derailment</h2>
+        <div id="activeDerailments">
+        </div>
     </section>
 
     <section>
-        <h2>Past Derailments</h2>
-        <div id="pastDerailments"></div>
+        <h2 id="pastDerailmentsTitle">Past Derailments</h2>
+        <div id="pastDerailments">
+        </div>
     </section>
 </div>
 
@@ -398,6 +400,7 @@
     document.addEventListener("DOMContentLoaded", () => {
             const activeDerailmentsContainer = document.getElementById("activeDerailments");
             const pastDerailmentsContainer = document.getElementById("pastDerailments");
+            const activeDerailmentsTitle = document.getElementById("activeDerailmentsTitle");
 
             // Attach event listener for expanding/collapsing the service list
             pastDerailmentsContainer.addEventListener('click', function(event) {
@@ -423,6 +426,9 @@
             }
 
             function renderDerailments(derailments, container) {
+                if(derailments.length == 0) {
+                    container.style.display = "none";
+                }
                 container.innerHTML = derailments.map(d => {
                     const isActive = !d.rolledBack;
                     const servicesHTML = d.affectedEntities.map(entity => {
@@ -513,6 +519,9 @@
                     const activeDerailments = data.filter(d => !d.rolledBack);
                     const pastDerailments = data.filter(d => d.rolledBack);
 
+                    if(activeDerailments.length == 0) {
+                        activeDerailmentsTitle.style.display = "none";
+                    }
                     renderDerailments(activeDerailments, activeDerailmentsContainer);
                     renderDerailments(pastDerailments, pastDerailmentsContainer);
                 });
